@@ -22,7 +22,6 @@
 
 
 
-
 std::vector<int> Variable::Discretize(std::vector<double> v)
 {
     std::vector<int> ret(this->_NumDimensions);
@@ -30,10 +29,16 @@ std::vector<int> Variable::Discretize(std::vector<double> v)
     {
         double val=v.at(i);
         if(_Circular.at(i)){
-            while(val>_Max.at(i))
-                val-=_Max.at(i);
-            while(val<_Min.at(i))
-                val+=_Max.at(i);
+            // while(val>_Max.at(i))
+            //     val-=_Max.at(i);
+            // while(val<_Min.at(i))
+            //     val+=_Max.at(i);
+
+            if(val>_Max.at(i))
+                val=_Min.at(i)+(val-_Max.at(i));
+            else if(val<_Min.at(i))
+                val=_Max.at(i)-(_Min.at(i)-val);
+
 
         }
 
@@ -85,10 +90,14 @@ int Variable::Discretize(std::vector<double> v, int dim)
     {
         double val=v.at(dim);
         if(_Circular.at(dim)){
-            while(val>_Max.at(dim))
-                val-=_Max.at(dim);
-            while(val<_Min.at(dim))
-                val+=_Max.at(dim);
+            // while(val>_Max.at(dim))
+            //     val-=_Max.at(dim);
+            // while(val<_Min.at(dim))
+            //     val+=_Max.at(dim);
+            if(val>_Max.at(dim))
+                val=_Min.at(dim)+(val-_Max.at(dim));
+            else if(val<_Min.at(dim))
+                val=_Max.at(dim)-(_Min.at(dim)-val);
 
         }
 

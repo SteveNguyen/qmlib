@@ -32,7 +32,7 @@
 //Dimensions cardinality
 #define _XPOS_CARD 51
 #define _XVEL_CARD 51
-#define _U_CARD 21
+#define _U_CARD 11
 
 //Dimensions ranges
 #define _XPOS_MIN -M_PI
@@ -83,7 +83,6 @@ public:
         {
 
 
-
             std::vector<int> Rindex=_XposU->GetRightIdx(i);
 
             std::vector<double> Xres;
@@ -95,7 +94,7 @@ public:
             Uvec.push_back(_XposU->ContinuizeRight(Rindex,2));
 
 
-                //FIXME Can optimize this call
+                //TODO: Can optimize this call
             Simulate(Xres,Uvec,0.25);
 
 
@@ -112,14 +111,25 @@ public:
                 std::vector<int> Lindex=_XposU->GetLeftIdx(ite);
 
                     //FIXME Circularity
-                pxpos=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0],SIGMA_XPOS);
-                pxvel=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1],SIGMA_XVEL);
+                // pxpos=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0],SIGMA_XPOS);
+                // pxvel=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1],SIGMA_XVEL);
 
+                double tmpg=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0],SIGMA_XPOS);
+                double tmpg_circ_r=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0]-(_XposU->GetLeftMax(0)-_XposU->GetLeftMin(0)),SIGMA_XPOS);
+                double tmpg_circ_l=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0]+(_XposU->GetLeftMax(0)-_XposU->GetLeftMin(0)),SIGMA_XPOS);
+
+                pxpos=max(tmpg,max(tmpg_circ_l,tmpg_circ_r));
+
+                tmpg=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1],SIGMA_XVEL);
+                tmpg_circ_r=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1]-(_XvelU->GetLeftMax(0)-_XvelU->GetLeftMin(0)),SIGMA_XVEL);
+                tmpg_circ_l=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1]+(_XvelU->GetLeftMax(0)-_XvelU->GetLeftMin(0)),SIGMA_XVEL);
+
+                pxvel=max(tmpg,max(tmpg_circ_l,tmpg_circ_r));
 
 
                 {
-
-                        //tbb::mutex::scoped_lock lock(_XposU->Mutex);
+                        //breaks everything...
+                    // tbb::mutex::scoped_lock lock(_XposU->Mutex);
 
                         //Just to keep it sparse
                     if(pxpos>_XPOS_THRES)
@@ -262,8 +272,8 @@ public:
 
 
                 {
-
-                        //tbb::mutex::scoped_lock lock(_XposU->Mutex);
+                        //breaks everything...
+                    // tbb::mutex::scoped_lock lock(_XposU->Mutex);
 
                         //Just to keep it sparse
                     if(pxpos>_XPOS_THRES)
@@ -385,7 +395,7 @@ void Simulate(std::vector<double>& X, std::vector<double> U, double dt)
 
     if(theta>M_PI)
         theta=theta-2.0*M_PI;
-    else if(theta<-M_PI)
+    else if(theta<=-M_PI)
         theta=2.0*M_PI+theta;
 
     X[0]=theta;
@@ -408,7 +418,7 @@ void ParallelBuild(CondDistribution* Xpos, CondDistribution* Xvel, CondDistribut
 
 
         //Iterate over the right member of the probs
-        // parallel_for( blocked_range<size_t>(0,Xpos->GetNumRightElements()),BuildPend(Xpos,Xvel,Xposvel),tbb::auto_partitioner());
+    // parallel_for( blocked_range<size_t>(0,Xpos->GetNumRightElements()),BuildPend(Xpos,Xvel,Xposvel),tbb::auto_partitioner());
 
 
     //Specifying the grainsize? Hard to find the optimal value...
@@ -516,9 +526,12 @@ void TransitionProbs::MakeDistribution()
 
 
     std::cerr<<"Building distributions..."<<std::endl;
+
+        //parallel for
     ParallelBuild(Xpos,Xvel,Transition);
 
-        //BuildPendEx Builder(Xpos,Xvel,Transition);
+    //TBB executor
+    // BuildPendEx Builder(Xpos,Xvel,Transition);
 
     std::cerr<<"\t Done."<<std::endl;
 

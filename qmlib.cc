@@ -69,6 +69,7 @@ void QuasiMetric::BuildGraph()
 
 double QuasiMetric::quasi_dist_init(Vertex orig, Vertex dest)
 {
+        //we did that before already but...
     if(orig.pos==dest.pos)
         return 0.0;
 
@@ -76,8 +77,8 @@ double QuasiMetric::quasi_dist_init(Vertex orig, Vertex dest)
 
 
         //Consider inversing origin-destination!
-        /* std::vector<int> left=dest.pos; */
-        /* std::vector<int> right=orig.pos; */
+        // std::vector<int> left=dest.pos;
+        // std::vector<int> right=orig.pos;
 
     std::vector<int> left=orig.pos;
     std::vector<int> right=dest.pos;
@@ -167,7 +168,6 @@ void QuasiMetric::init_graph_step(size_t i)
                 //Find this: libs/graph_parallel/test/adjlist_build_test.cpp
             graph_t::lazy_add_edge lazy=boost::add_edge(Vertices[i],Vertices[j],G); //lazy = Developper didn't want to document
 
-
             std::pair<graph_traits<graph_t>::edge_descriptor, bool> result(lazy);
             if(result.second)
             {
@@ -176,8 +176,9 @@ void QuasiMetric::init_graph_step(size_t i)
                 G[Vertices[j]]=tmp;
 
                 G[result.first].weight =dist;
+                // G[result.first].dist =dist;
 
-                    /* G[result.first].second =dist; */
+
 
             }
 
@@ -230,12 +231,12 @@ void QuasiMetric::ComputeQM(std::vector<int> obj)
 
 
 
-        /* dijkstra_shortest_paths */
-        /*     (G, s, */
-        /*      predecessor_map(&pre[0]). */
-        /*      weight_map(get(&Edge::dist, G)). */
-        /*      distance_map(&QD[0]) */
-        /*      ); */
+        // dijkstra_shortest_paths
+        //     (G, s,
+        //      predecessor_map(&pre[0]).
+        //      weight_map(get(&Edge::dist, G)).
+        //      distance_map(&QD[0])
+        //      );
 
 
 

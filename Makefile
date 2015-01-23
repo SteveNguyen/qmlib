@@ -1,9 +1,10 @@
 TARGET_LIB = libqm.a
 
 CC = mpicc
+# CC = g++
 
 CXXFLAGS = -I/usr/lib/openmpi/include/ -O3 -DNDEBUG #-g
-LIBS = -lstdc++ -lboost_serialization -ltbb -lboost_system -lboost_mpi -lmpi -lmpi_cxx -lboost_graph_parallel
+LIBS = -lstdc++ -lboost_serialization -ltbb -lboost_system -lboost_mpi -lmpi -lmpi_cxx -lboost_graph_parallel -O3
 
 SOURCES_LIB = qmlib.cc prob_utils.cc
 OBJECTS_LIB  := $(SOURCES_LIB:%.cc=%.o)
@@ -34,4 +35,4 @@ $(OBJECTS_LIB): $(SOURCES_LIB) $(HEADERS_LIB)
 	$(CC) -c $*.cc -o $@ $(CXXFLAGS)
 
 clean:
-	rm $(TARGET_LIB) $(OBJECTS_LIB)
+	rm $(TARGET_LIB) $(OBJECTS_LIB) $(EXAMPLE_OBJ) $(EXAMPLE_TARGET)
