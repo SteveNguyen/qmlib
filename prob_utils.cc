@@ -229,7 +229,7 @@ double Variable::Continuize(const std::vector<int> v, int dim)
 
         for(double it=_Min.at(dim);it<=_Max.at(dim);it+=(_Max.at(dim)-_Min.at(dim))/double(_Shape.at(dim)-1.0))
         {
-                //std::cerr<<"DEBUG "<<dim<<" "<<it<<" "<<disc<<" "<<v.at(dim)<<std::endl;
+
 
             if(vec == disc){
                 ret=it;

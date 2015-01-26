@@ -77,11 +77,11 @@ double QuasiMetric::quasi_dist_init(Vertex orig, Vertex dest)
 
 
         //Consider inversing origin-destination!
-        // std::vector<int> left=dest.pos;
-        // std::vector<int> right=orig.pos;
+    std::vector<int> left=dest.pos;
+    std::vector<int> right=orig.pos;
 
-    std::vector<int> left=orig.pos;
-    std::vector<int> right=dest.pos;
+    // std::vector<int> left=orig.pos;
+    // std::vector<int> right=dest.pos;
 
 
     std::vector<int> tmpright;
@@ -96,7 +96,7 @@ double QuasiMetric::quasi_dist_init(Vertex orig, Vertex dest)
         //std::cerr<<"DEBUG u "<<P->_U.GetNumElements()<<std::endl;
 
 
-        //FIXME iterate through non null only!!
+        //TODO iterate through non null only!!
     for(int u=0;u<P->_U.GetNumElements();u++)
     {
         tmpright=right;
@@ -115,6 +115,7 @@ double QuasiMetric::quasi_dist_init(Vertex orig, Vertex dest)
 
         if(p>_P_EPSILON)
         {
+
             tmp=(cost(tmpright)/p);
 
             if(tmp<mind)
@@ -129,7 +130,7 @@ double QuasiMetric::quasi_dist_init(Vertex orig, Vertex dest)
     if(mind<INF)
         return mind;
     else
-        return -1.0;
+        return -1.0;//to keep the graph sparse
 }
 
 
@@ -159,24 +160,28 @@ void QuasiMetric::init_graph_step(size_t i)
 
 
 
-
+            //infinite distance=no connection
         if(dist!=-1.0)
         {
+
+
 
                 //boost::tie(e,b) = boost::add_edge(Vertices[i],Vertices[j],G);
                 //Once again some obscure boost f*ck around that one have to summon Satan to discover
                 //Find this: libs/graph_parallel/test/adjlist_build_test.cpp
-            graph_t::lazy_add_edge lazy=boost::add_edge(Vertices[i],Vertices[j],G); //lazy = Developper didn't want to document
+
+                //NOTE: here we invert origine and destination in order to compute the all-to-one distance
+            graph_t::lazy_add_edge lazy=boost::add_edge(Vertices[j],Vertices[i],G); //lazy = Developper didn't want to document
 
             std::pair<graph_traits<graph_t>::edge_descriptor, bool> result(lazy);
             if(result.second)
             {
-
+                    //HERE
                     //FIXME
                 G[Vertices[j]]=tmp;
 
-                G[result.first].weight =dist;
-                // G[result.first].dist =dist;
+                // G[result.first].weight =dist;
+                G[result.first].dist =dist;
 
 
 
@@ -205,18 +210,16 @@ void QuasiMetric::ComputeQM(std::vector<int> obj)
     std::vector<vertex_t> pre(num_vertices(G));
     std::vector<double> w(num_vertices(G));
 
+
+        //Non distributed shortest path
         //dijkstra_shortest_paths(G, Vertices[obj_state], predecessor_map(&pre[0]).weight_map(get(&Edge::dist, G)).distance_map(&QD[0]));
-
-
-
-
 
     vertex_t s = Vertices[obj_state];
 
 
 
-        /* dijkstra_shortest_paths(G, s, */
-        /*                         distance_map(get(vertex_distance, G))); */
+        // dijkstra_shortest_paths(G, s,
+        //                         distance_map(get(vertex_distance, G)));
 
 
 
@@ -243,7 +246,10 @@ void QuasiMetric::ComputeQM(std::vector<int> obj)
     delta_stepping_shortest_paths(G, s,
                                   dummy_property_map(),
                                   get(&Vertex::distance, G),
-                                  get(&Edge::weight, G));
+                                  get(&Edge::dist, G));
+
+
+
 
     property_map<graph_t, double Vertex::*>::type
         distance_map = get(&Vertex::distance, G);

@@ -343,7 +343,8 @@ public:
     }
 
 
-    virtual void Simulate(std::vector<double>& Xres, std::vector<double> U, double dt) const{};
+    virtual void Simulate(std::vector<double>& Xres, std::vector<double> U, double dt)const{};
+
 
 
         /**

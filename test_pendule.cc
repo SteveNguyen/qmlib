@@ -20,8 +20,10 @@
 
 #include "qmlib.h"
 #include "prob_utils.h"
-
+#include <math.h>
 //Parameters of the problem
+
+#include <boost/graph/graphviz.hpp>
 
 #define SIGMA_XPOS 0.2 //Gaussian sigma
 #define _XPOS_THRES 0.001 //Thresholds are optional
@@ -68,11 +70,11 @@ public:
     CondDistribution* _XposvelU;
 
 
-    void Simulate(std::vector<double>& Xres, std::vector<double> U, double dt) const{};
+    virtual void Simulate(std::vector<double>& X, std::vector<double> U, double dt) const;
+
 
     BuildPend(CondDistribution* XposU, CondDistribution* XvelU, CondDistribution* XposvelU)
         :Build(XposvelU),_XposU(XposU),_XvelU(XvelU),_XposvelU(XposvelU){}
-
 
     void operator() (const blocked_range<size_t> &r) const {
 
@@ -81,6 +83,11 @@ public:
 
         for(size_t i=r.begin(); i!=r.end(); i++)
         {
+
+                //please don't do that here...
+            double normepos=Gaussian(0,0,SIGMA_XPOS);
+            double normevel=Gaussian(0,0,SIGMA_XVEL);
+
 
 
             std::vector<int> Rindex=_XposU->GetRightIdx(i);
@@ -103,7 +110,6 @@ public:
             double pxvel=0.0;
 
 
-
                 //Iterate through the left member
             for(int ite=0;ite< _XposU->GetNumLeftElements();ite++)
             {
@@ -111,20 +117,22 @@ public:
                 std::vector<int> Lindex=_XposU->GetLeftIdx(ite);
 
                     //FIXME Circularity
-                // pxpos=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0],SIGMA_XPOS);
-                // pxvel=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1],SIGMA_XVEL);
+                pxpos=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0],SIGMA_XPOS)/normepos;
+                pxvel=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1],SIGMA_XVEL)/normevel;
 
-                double tmpg=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0],SIGMA_XPOS);
-                double tmpg_circ_r=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0]-(_XposU->GetLeftMax(0)-_XposU->GetLeftMin(0)),SIGMA_XPOS);
-                double tmpg_circ_l=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0]+(_XposU->GetLeftMax(0)-_XposU->GetLeftMin(0)),SIGMA_XPOS);
 
-                pxpos=max(tmpg,max(tmpg_circ_l,tmpg_circ_r));
 
-                tmpg=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1],SIGMA_XVEL);
-                tmpg_circ_r=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1]-(_XvelU->GetLeftMax(0)-_XvelU->GetLeftMin(0)),SIGMA_XVEL);
-                tmpg_circ_l=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1]+(_XvelU->GetLeftMax(0)-_XvelU->GetLeftMin(0)),SIGMA_XVEL);
+                // double tmpg=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0],SIGMA_XPOS);
+                // double tmpg_circ_r=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0]-(_XposU->GetLeftMax(0)-_XposU->GetLeftMin(0)),SIGMA_XPOS);
+                // double tmpg_circ_l=Gaussian(_XposU->ContinuizeLeft(Lindex,0),Xres[0]+(_XposU->GetLeftMax(0)-_XposU->GetLeftMin(0)),SIGMA_XPOS);
 
-                pxvel=max(tmpg,max(tmpg_circ_l,tmpg_circ_r));
+                // pxpos=max(tmpg,max(tmpg_circ_l,tmpg_circ_r))/normepos;
+
+                // tmpg=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1],SIGMA_XVEL);
+                // tmpg_circ_r=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1]-(_XvelU->GetLeftMax(0)-_XvelU->GetLeftMin(0)),SIGMA_XVEL);
+                // tmpg_circ_l=Gaussian(_XvelU->ContinuizeLeft(Lindex,0),Xres[1]+(_XvelU->GetLeftMax(0)-_XvelU->GetLeftMin(0)),SIGMA_XVEL);
+
+                // pxvel=max(tmpg,max(tmpg_circ_l,tmpg_circ_r))/normevel;
 
 
                 {
@@ -204,7 +212,7 @@ public:
 };
 
 
-
+/*
 //Test with the tbbexecutor style. Not very convincing...
 
 class BuildPendEx: public Build
@@ -372,7 +380,7 @@ public:
 
 };
 
-
+*/
 
 
 
@@ -385,7 +393,7 @@ public:
  */
 
 
-void Simulate(std::vector<double>& X, std::vector<double> U, double dt)
+void BuildPend::Simulate(std::vector<double>& X, std::vector<double> U, double dt) const
 {
 
     double dtheta=X[1]+(U[0]+sin(X[0]))*dt;
@@ -633,6 +641,15 @@ int main(int argc, char* argv[])
 
         //Compute the quasimetric
     QM.ComputeQM(obj);
+
+    std::ofstream gfile("graph.dot");
+    dynamic_properties dp;
+    // dp.property("id", get(vertex_name, g));
+    // dp.property("weight",get(&Edge::dist, G));
+
+    // write_graphviz(gfile,QM.G);
+    // gfile.close();
+
 
 
 
