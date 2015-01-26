@@ -233,8 +233,7 @@ class QuasiMetric
 
     std::vector<vertex_t> Vertices;
     Variable VerticesVar;
-
-    std::vector<double> QD;
+    property_map<graph_t, double Vertex::*>::type distance_map;
 
     QuasiMetric(){}
 

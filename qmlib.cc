@@ -206,9 +206,9 @@ void QuasiMetric::ComputeQM(std::vector<int> obj)
 
 
         //WARNING! DISTRIBUTED
-    QD=std::vector<double>(num_vertices(G));
-    std::vector<vertex_t> pre(num_vertices(G));
-    std::vector<double> w(num_vertices(G));
+    // QD=std::vector<double>(num_vertices(G));
+    // std::vector<vertex_t> pre(num_vertices(G));
+    // std::vector<double> w(num_vertices(G));
 
 
         //Non distributed shortest path
@@ -243,6 +243,7 @@ void QuasiMetric::ComputeQM(std::vector<int> obj)
 
 
 
+        //this one seems to work...
     delta_stepping_shortest_paths(G, s,
                                   dummy_property_map(),
                                   get(&Vertex::distance, G),
@@ -251,8 +252,8 @@ void QuasiMetric::ComputeQM(std::vector<int> obj)
 
 
 
-    property_map<graph_t, double Vertex::*>::type
-        distance_map = get(&Vertex::distance, G);
+
+    distance_map = get(&Vertex::distance, G);
 
 
 
